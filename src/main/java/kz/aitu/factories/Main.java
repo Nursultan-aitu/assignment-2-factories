@@ -1,12 +1,20 @@
 package kz.aitu.factories;
 
-import kz.aitu.factories.legacy.LegacyDeliveryService;
+import kz.aitu.factories.application.DeliveryMode;
+import kz.aitu.factories.application.DeliveryOrder;
+import kz.aitu.factories.application.DeliveryPlatform;
+import kz.aitu.factories.factory.SystemFactory;
+import kz.aitu.factories.selection.FactorySelector;
 
 public class Main {
     public static void main(String[] args) {
-        LegacyDeliveryService service = new LegacyDeliveryService();
-        System.out.println(service.deliver("METRO", 2.0, 5.0));
-        System.out.println(service.deliver("CAMPUS", 1.0, 2.0));
-        System.out.println(service.deliver("COASTAL", 3.0, 7.0));
+        String chosenFamily = args.length == 0 ? "METRO" : args[0];
+        SystemFactory<?> factory = FactorySelector.select(chosenFamily);
+        DeliveryPlatform<?> platform = DeliveryPlatform.from(factory);
+
+        DeliveryOrder order = new DeliveryOrder("ORD-17", 2.0, 5.0, DeliveryMode.PRIORITY);
+        System.out.println(platform.fulfil(order));
+        System.out.println(platform.quote(order));
+        System.out.println(platform.routePreview(order));
     }
 }
