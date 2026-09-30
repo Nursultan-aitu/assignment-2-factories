@@ -1,0 +1,108 @@
+@startuml
+title Drone Delivery Factory System
+skinparam classAttributeIconSize 0
+
+package "Abstract Factory" {
+    interface "SystemFactory<F>" as SystemFactory {
+        +createDrone(): Drone<F>
+        +createRoutePlanner(): RoutePlanner<F>
+        +createPaymentGateway(): PaymentGateway<F>
+    }
+    class MetroFactory
+    class CampusFactory
+    class CoastalFactory
+    class MountainFactory
+
+    SystemFactory <|.. MetroFactory
+    SystemFactory <|.. CampusFactory
+    SystemFactory <|.. CoastalFactory
+    SystemFactory <|.. MountainFactory
+
+    interface "Drone<F>" as Drone
+    interface "RoutePlanner<F>" as Planner
+    interface "PaymentGateway<F>" as Payment
+    SystemFactory ..> Drone : creates
+    SystemFactory ..> Planner : creates
+    SystemFactory ..> Payment : creates
+}
+
+package "Product families" {
+    interface "NetworkFamily" as Network
+    class Metro
+    class Campus
+    class Coastal
+    class Mountain
+    Network <|.. Metro
+    Network <|.. Campus
+    Network <|.. Coastal
+    Network <|.. Mountain
+
+    class MetroDrone
+    class MetroRoutePlanner
+    class MetroPayment
+    class CampusDrone
+    class CampusRoutePlanner
+    class CampusPayment
+    class CoastalDrone
+    class CoastalRoutePlanner
+    class CoastalPayment
+    class MountainDrone
+    class MountainRoutePlanner
+    class MountainPayment
+
+    Drone <|.. MetroDrone
+    Drone <|.. CampusDrone
+    Drone <|.. CoastalDrone
+    Drone <|.. MountainDrone
+    Planner <|.. MetroRoutePlanner
+    Planner <|.. CampusRoutePlanner
+    Planner <|.. CoastalRoutePlanner
+    Planner <|.. MountainRoutePlanner
+    Payment <|.. MetroPayment
+    Payment <|.. CampusPayment
+    Payment <|.. CoastalPayment
+    Payment <|.. MountainPayment
+}
+
+package "Factory Method" {
+    abstract class "DispatchCreator<F>" as Creator {
+        +scheduleDelivery(...)
+        #createStrategy(): DispatchStrategy<F>
+    }
+    interface "DispatchStrategy<F>" as Strategy
+    class PriorityCreator
+    class StandardCreator
+    class EcoCreator
+    class PriorityDispatch
+    class StandardDispatch
+    class EcoDispatch
+
+    Creator <|-- PriorityCreator
+    Creator <|-- StandardCreator
+    Creator <|-- EcoCreator
+    Creator ..> Strategy : Factory Method
+    Strategy <|.. PriorityDispatch
+    Strategy <|.. StandardDispatch
+    Strategy <|.. EcoDispatch
+}
+
+class "FactorySelector" as Selector
+class "DeliveryPlatform<F>" as Platform
+class "DeliveryAppFrame" as GUI
+class Main
+
+Main --> GUI
+GUI --> Selector : selected family
+Selector --> SystemFactory
+SystemFactory --> Platform : creates compatible products
+Platform --> Creator : schedules delivery
+Platform --> Drone
+Platform --> Planner
+Platform --> Payment
+
+note right of Platform
+The same generic family F is used by
+Drone, RoutePlanner and PaymentGateway.
+Mixed families do not type-check.
+end note
+@enduml
