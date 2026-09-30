@@ -25,7 +25,7 @@ import java.awt.Insets;
 
 /** A small graphical client: the user selects the product family at runtime. */
 public class DeliveryAppFrame extends JFrame {
-    private final JComboBox<String> familyBox = new JComboBox<>(new String[]{"METRO", "CAMPUS", "COASTAL"});
+    private final JComboBox<String> familyBox = new JComboBox<>(new String[]{"METRO", "CAMPUS", "COASTAL", "MOUNTAIN"});
     private final JComboBox<DeliveryMode> modeBox = new JComboBox<>(DeliveryMode.values());
     private final JTextField orderIdField = new JTextField("ORD-17", 15);
     private final JTextField weightField = new JTextField("2.0", 15);

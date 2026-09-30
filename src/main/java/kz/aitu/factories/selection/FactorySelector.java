@@ -3,6 +3,7 @@ package kz.aitu.factories.selection;
 import kz.aitu.factories.factory.CampusFactory;
 import kz.aitu.factories.factory.CoastalFactory;
 import kz.aitu.factories.factory.MetroFactory;
+import kz.aitu.factories.factory.MountainFactory;
 import kz.aitu.factories.factory.SystemFactory;
 
 import java.util.Locale;
@@ -17,6 +18,7 @@ public final class FactorySelector {
             case "METRO" -> new MetroFactory();
             case "CAMPUS" -> new CampusFactory();
             case "COASTAL" -> new CoastalFactory();
+            case "MOUNTAIN" -> new MountainFactory();
             default -> throw new IllegalArgumentException("Unknown network: " + familyName);
         };
     }
