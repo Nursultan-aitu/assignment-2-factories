@@ -32,13 +32,13 @@ public class DeliveryPlatform<F extends NetworkFamily> {
     public String fulfil(DeliveryOrder order) {
         String dispatch = creatorFor(order.mode()).scheduleDelivery(
                 drone, routePlanner, order.weightKg(), order.distanceKm());
-        return dispatch + " | " + paymentGateway.charge(priceFor(order))
+        return dispatch + " | " + paymentGateway.charge(calculatePrice(order))
                 + " | Order " + order.id() + " confirmed";
     }
 
     /** Business operation: get a price through the family's payment product. */
     public String quote(DeliveryOrder order) {
-        return paymentGateway.charge(priceFor(order));
+        return paymentGateway.charge(calculatePrice(order));
     }
 
     /** Business operation: preview a route through the family's route product. */
@@ -54,8 +54,10 @@ public class DeliveryPlatform<F extends NetworkFamily> {
         return drone.maxWeightKg();
     }
 
-    private double priceFor(DeliveryOrder order) {
-        return order.distanceKm() * 1000.0;
+    public double calculatePrice(DeliveryOrder order) {
+        double basePrice = paymentGateway.calculateBasePrice(order.distanceKm());
+        double adjustedPrice = basePrice * creatorFor(order.mode()).priceMultiplier();
+        return Math.round(adjustedPrice * 100.0) / 100.0;
     }
 
     private DispatchCreator<F> creatorFor(DeliveryMode mode) {

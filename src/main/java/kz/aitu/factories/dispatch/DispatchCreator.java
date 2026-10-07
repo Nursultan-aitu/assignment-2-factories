@@ -21,4 +21,8 @@ public abstract class DispatchCreator<F extends NetworkFamily> {
         }
         return createStrategy().dispatch(drone, routePlanner, distanceKm);
     }
+
+    public final double priceMultiplier() {
+        return createStrategy().priceMultiplier();
+    }
 }

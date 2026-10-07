@@ -322,7 +322,8 @@ public class DeliveryAppFrame extends JFrame {
         droneValue.setText(platform.droneIdentifier());
         capacityValue.setText(platform.maximumWeightKg() + " kg");
         distanceValue.setText(order.distanceKm() + " km");
-        priceValue.setText((order.distanceKm() * 1000.0) + " KZT");
+        priceValue.setText(String.format(java.util.Locale.ROOT, "%.2f KZT",
+                platform.calculatePrice(order)));
         detailsArea.setText(details);
         detailsArea.setCaretPosition(0);
         styleStatus(status, statusColor);

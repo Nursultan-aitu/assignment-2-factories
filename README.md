@@ -13,18 +13,18 @@ The application models drone delivery networks. A selected network supplies a co
 
 ## Product families
 
-| Family | Drone | Route planner | Payment gateway |
-|---|---|---|---|
-| Metro | MetroDrone | MetroRoutePlanner | MetroPayment |
-| Campus | CampusDrone | CampusRoutePlanner | CampusPayment |
-| Coastal | CoastalDrone | CoastalRoutePlanner | CoastalPayment |
-| Mountain | MountainDrone | MountainRoutePlanner | MountainPayment |
+| Family | Drone | Route planner | Payment gateway | Base rate |
+|---|---|---|---|---:|
+| Metro | MetroDrone | MetroRoutePlanner | MetroPayment | 1000 KZT/km |
+| Campus | CampusDrone | CampusRoutePlanner | CampusPayment | 700 KZT/km |
+| Coastal | CoastalDrone | CoastalRoutePlanner | CoastalPayment | 1300 KZT/km |
+| Mountain | MountainDrone | MountainRoutePlanner | MountainPayment | 1800 KZT/km |
 
 ## Patterns
 
 ### Factory Method
 
-`DispatchCreator<F>` contains the delivery scheduling algorithm: it validates weight and distance, checks drone capacity, then calls the Factory Method `createStrategy()`. `PriorityCreator`, `StandardCreator` and `EcoCreator` choose their corresponding `DispatchStrategy` products.
+`DispatchCreator<F>` contains the delivery scheduling algorithm: it validates weight and distance, checks drone capacity, then calls the Factory Method `createStrategy()`. `PriorityCreator`, `StandardCreator` and `EcoCreator` choose their corresponding `DispatchStrategy` products. The strategies also apply pricing multipliers: Priority 1.40, Standard 1.00 and Eco 0.85.
 
 This is not a static factory: the base creator contains meaningful reusable business logic and subclasses vary one creation step inside that algorithm.
 
@@ -43,7 +43,7 @@ This is not a static factory: the base creator contains meaningful reusable busi
 `DeliveryPlatform` provides:
 
 - `fulfil` — plans a route, selects dispatch behavior, checks capacity, flies and charges payment;
-- `quote` — calculates a family-specific payment result;
+- `quote` — calculates a family-specific base rate adjusted by the selected dispatch mode;
 - `routePreview` — returns the selected family route.
 
 ## Fourth family extension
@@ -52,7 +52,7 @@ Mountain was added by introducing `Mountain`, three Mountain products and `Mount
 
 ## Tests
 
-`DeliveryFactoryTest` contains 16 automated tests covering factory products, runtime selection, business operations, Factory Method behavior, negative scenarios, generic abstraction use and the Mountain extension.
+`DeliveryFactoryTest` contains 22 automated tests covering factory products, runtime selection, business operations, Factory Method behavior and pricing, negative scenarios, generic abstraction use and the Mountain extension.
 
 ## UML
 

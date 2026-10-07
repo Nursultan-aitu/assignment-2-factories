@@ -4,5 +4,6 @@ import kz.aitu.factories.family.Mountain;
 import kz.aitu.factories.product.PaymentGateway;
 
 public class MountainPayment implements PaymentGateway<Mountain> {
-    public String charge(double amount) { return "SummitPay charged " + amount + " KZT"; }
+    public double calculateBasePrice(double distanceKm) { return distanceKm * 1800.0; }
+    public String gatewayName() { return "SummitPay"; }
 }

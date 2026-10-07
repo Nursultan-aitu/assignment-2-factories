@@ -9,4 +9,7 @@ public class EcoDispatch<F extends NetworkFamily> implements DispatchStrategy<F>
     public String dispatch(Drone<F> drone, RoutePlanner<F> routePlanner, double distanceKm) {
         return "ECO: batch-friendly " + routePlanner.planRoute(distanceKm) + "; " + drone.fly(distanceKm);
     }
+
+    @Override
+    public double priceMultiplier() { return 0.85; }
 }

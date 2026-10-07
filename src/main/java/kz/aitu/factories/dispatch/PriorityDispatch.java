@@ -9,4 +9,7 @@ public class PriorityDispatch<F extends NetworkFamily> implements DispatchStrate
     public String dispatch(Drone<F> drone, RoutePlanner<F> routePlanner, double distanceKm) {
         return "PRIORITY: " + routePlanner.planRoute(distanceKm) + "; " + drone.fly(distanceKm);
     }
+
+    @Override
+    public double priceMultiplier() { return 1.40; }
 }

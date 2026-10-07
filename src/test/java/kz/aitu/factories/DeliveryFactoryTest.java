@@ -23,6 +23,7 @@ import kz.aitu.factories.product.mountain.MountainRoutePlanner;
 import kz.aitu.factories.selection.FactorySelector;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -134,5 +135,41 @@ class DeliveryFactoryTest {
         String result = DeliveryPlatform.from(new MountainFactory()).fulfil(order(DeliveryMode.PRIORITY));
         assertTrue(result.contains("SummitPay"));
         assertTrue(result.contains("high-altitude"));
+    }
+
+    @Test
+    void metroUsesItsOwnStandardTariff() {
+        assertEquals(5000.0,
+                DeliveryPlatform.from(new MetroFactory()).calculatePrice(order(DeliveryMode.STANDARD)));
+    }
+
+    @Test
+    void campusUsesItsOwnStandardTariff() {
+        assertEquals(3500.0,
+                DeliveryPlatform.from(new CampusFactory()).calculatePrice(order(DeliveryMode.STANDARD)));
+    }
+
+    @Test
+    void coastalUsesItsOwnStandardTariff() {
+        assertEquals(6500.0,
+                DeliveryPlatform.from(new CoastalFactory()).calculatePrice(order(DeliveryMode.STANDARD)));
+    }
+
+    @Test
+    void mountainUsesItsOwnStandardTariff() {
+        assertEquals(9000.0,
+                DeliveryPlatform.from(new MountainFactory()).calculatePrice(order(DeliveryMode.STANDARD)));
+    }
+
+    @Test
+    void priorityModeAddsFortyPercent() {
+        assertEquals(7000.0,
+                DeliveryPlatform.from(new MetroFactory()).calculatePrice(order(DeliveryMode.PRIORITY)));
+    }
+
+    @Test
+    void ecoModeAppliesFifteenPercentDiscount() {
+        assertEquals(4250.0,
+                DeliveryPlatform.from(new MetroFactory()).calculatePrice(order(DeliveryMode.ECO)));
     }
 }

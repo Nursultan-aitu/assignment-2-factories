@@ -21,11 +21,15 @@ This approach has four concrete problems:
 
 The Factory Method is justified because dispatch selection varies but the validation and scheduling flow is shared.
 
+Each dispatch strategy also contributes a price multiplier: Priority adds 40%, Standard keeps the base price, and Eco applies a 15% discount.
+
 ## Abstract Factory
 
 `SystemFactory<F>` is the Abstract Factory. Its three creation methods produce a `Drone<F>`, `RoutePlanner<F>` and `PaymentGateway<F>`. `MetroFactory`, `CampusFactory`, `CoastalFactory` and `MountainFactory` are Concrete Factories.
 
 The generic marker type `F extends NetworkFamily` enforces family consistency. `DeliveryPlatform<F>` accepts only products of the same generic family. For example, Java rejects a normal attempt to combine a Metro drone with a Campus payment gateway.
+
+Concrete payment products have meaningful pricing behavior. Metro charges 1000 KZT/km, Campus 700 KZT/km, Coastal 1300 KZT/km and Mountain 1800 KZT/km. `DeliveryPlatform` combines the selected family's base tariff with the selected Factory Method strategy multiplier.
 
 ## Runtime selection and UI
 
@@ -37,7 +41,7 @@ The fourth family Mountain adds a drone, route planner, payment gateway and `Mou
 
 ## Testing
 
-The project includes 16 JUnit tests. They test all original factories, concrete product creation, compatibility through generic abstractions, runtime selection, three business operations, negative scenarios and the Mountain family.
+The project includes 22 JUnit tests. They test all original factories, concrete product creation, compatibility through generic abstractions, runtime selection, three business operations, family tariffs, delivery-mode multipliers, negative scenarios and the Mountain family.
 
 ## UML traceability
 

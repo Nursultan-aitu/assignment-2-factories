@@ -7,4 +7,6 @@ import kz.aitu.factories.product.RoutePlanner;
 /** Product role in the Factory Method pattern. */
 public interface DispatchStrategy<F extends NetworkFamily> {
     String dispatch(Drone<F> drone, RoutePlanner<F> routePlanner, double distanceKm);
+
+    double priceMultiplier();
 }
