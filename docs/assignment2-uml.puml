@@ -24,6 +24,7 @@ package "Abstract Factory" {
     SystemFactory ..> Drone : creates
     SystemFactory ..> Planner : creates
     SystemFactory ..> Payment : creates
+
 }
 
 package "Product families" {
@@ -64,6 +65,19 @@ package "Product families" {
     Payment <|.. MountainPayment
 }
 
+MetroFactory ..> MetroDrone : creates
+MetroFactory ..> MetroRoutePlanner : creates
+MetroFactory ..> MetroPayment : creates
+CampusFactory ..> CampusDrone : creates
+CampusFactory ..> CampusRoutePlanner : creates
+CampusFactory ..> CampusPayment : creates
+CoastalFactory ..> CoastalDrone : creates
+CoastalFactory ..> CoastalRoutePlanner : creates
+CoastalFactory ..> CoastalPayment : creates
+MountainFactory ..> MountainDrone : creates
+MountainFactory ..> MountainRoutePlanner : creates
+MountainFactory ..> MountainPayment : creates
+
 package "Factory Method" {
     abstract class "DispatchCreator<F>" as Creator {
         +scheduleDelivery(...)
@@ -89,12 +103,13 @@ package "Factory Method" {
 class "FactorySelector" as Selector
 class "DeliveryPlatform<F>" as Platform
 class "DeliveryAppFrame" as GUI
-class Main
+class Main <<Client>>
 
 Main --> GUI
 GUI --> Selector : selected family
+GUI --> Platform : creates and uses
 Selector --> SystemFactory
-SystemFactory --> Platform : creates compatible products
+Platform ..> SystemFactory : uses products from
 Platform --> Creator : schedules delivery
 Platform --> Drone
 Platform --> Planner
