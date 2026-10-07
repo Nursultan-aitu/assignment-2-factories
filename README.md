@@ -56,4 +56,4 @@ Mountain was added by introducing `Mountain`, three Mountain products and `Mount
 
 ## UML
 
-The PlantUML source is [docs/assignment2-uml.puml](docs/assignment2-uml.puml). It marks the Factory Method and Abstract Factory parts and shows all key relationships.
+The editable PlantUML source is [docs/assignment2-uml.puml](docs/assignment2-uml.puml), and the rendered diagram is [docs/assignment2-uml.png](docs/assignment2-uml.png). It marks the Factory Method and Abstract Factory parts and shows all key relationships.
