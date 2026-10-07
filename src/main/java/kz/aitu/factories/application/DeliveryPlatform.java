@@ -54,6 +54,14 @@ public class DeliveryPlatform<F extends NetworkFamily> {
         return drone.maxWeightKg();
     }
 
+    public double baseRatePerKm() {
+        return paymentGateway.ratePerKm();
+    }
+
+    public double modePriceMultiplier(DeliveryMode mode) {
+        return creatorFor(mode).priceMultiplier();
+    }
+
     public double calculatePrice(DeliveryOrder order) {
         double basePrice = paymentGateway.calculateBasePrice(order.distanceKm());
         double adjustedPrice = basePrice * creatorFor(order.mode()).priceMultiplier();

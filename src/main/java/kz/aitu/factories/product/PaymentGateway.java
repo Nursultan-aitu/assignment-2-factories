@@ -5,7 +5,11 @@ import kz.aitu.factories.family.NetworkFamily;
 import java.util.Locale;
 
 public interface PaymentGateway<F extends NetworkFamily> {
-    double calculateBasePrice(double distanceKm);
+    double ratePerKm();
+
+    default double calculateBasePrice(double distanceKm) {
+        return distanceKm * ratePerKm();
+    }
 
     String gatewayName();
 

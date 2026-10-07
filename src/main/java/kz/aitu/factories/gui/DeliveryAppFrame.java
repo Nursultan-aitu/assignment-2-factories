@@ -1,7 +1,5 @@
 package kz.aitu.factories.gui;
 
-import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLightLaf;
 import kz.aitu.factories.application.DeliveryMode;
 import kz.aitu.factories.application.DeliveryOrder;
 import kz.aitu.factories.application.DeliveryPlatform;
@@ -21,9 +19,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -55,18 +54,18 @@ public class DeliveryAppFrame extends JFrame {
 
     private final JLabel errorLabel = new JLabel(" ");
     private final JLabel capacityHint = new JLabel();
+    private final JLabel tariffHint = new JLabel();
     private final JLabel statusValue = new JLabel("Ready", SwingConstants.CENTER);
     private final JLabel networkValue = new JLabel("-");
     private final JLabel modeValue = new JLabel("-");
     private final JLabel droneValue = new JLabel("-");
     private final JLabel capacityValue = new JLabel("-");
+    private final JLabel baseRateValue = new JLabel("-");
+    private final JLabel modifierValue = new JLabel("-");
     private final JLabel distanceValue = new JLabel("-");
     private final JLabel priceValue = new JLabel("-");
     private final JTextArea detailsArea = new JTextArea();
     private final JPanel familyAccent = new JPanel();
-    private final JButton themeButton = new JButton("Dark mode");
-
-    private boolean darkMode;
 
     public DeliveryAppFrame() {
         setTitle("Drone Delivery Factory System");
@@ -105,10 +104,7 @@ public class DeliveryAppFrame extends JFrame {
         text.add(Box.createVerticalStrut(5));
         text.add(subtitle);
 
-        themeButton.setFocusable(false);
-        themeButton.addActionListener(event -> toggleTheme());
         header.add(text, BorderLayout.CENTER);
-        header.add(themeButton, BorderLayout.EAST);
         return header;
     }
 
@@ -136,6 +132,14 @@ public class DeliveryAppFrame extends JFrame {
         hint.anchor = GridBagConstraints.WEST;
         hint.insets = new Insets(0, 0, 6, 0);
         form.add(capacityHint, hint);
+
+        tariffHint.setFont(tariffHint.getFont().deriveFont(12f));
+        tariffHint.setForeground(UIManager.getColor("Label.disabledForeground"));
+        GridBagConstraints tariff = constraints(1, 6);
+        tariff.gridwidth = 2;
+        tariff.anchor = GridBagConstraints.WEST;
+        tariff.insets = new Insets(0, 0, 6, 0);
+        form.add(tariffHint, tariff);
         card.add(form, BorderLayout.CENTER);
 
         JPanel actions = new JPanel();
@@ -181,13 +185,15 @@ public class DeliveryAppFrame extends JFrame {
         heading.add(statusValue, BorderLayout.EAST);
         card.add(heading, BorderLayout.NORTH);
 
-        JPanel summary = new JPanel(new GridLayout(6, 2, 10, 11));
+        JPanel summary = new JPanel(new GridLayout(8, 2, 10, 9));
         addSummaryRow(summary, "Network", networkValue);
         addSummaryRow(summary, "Mode", modeValue);
         addSummaryRow(summary, "Drone", droneValue);
         addSummaryRow(summary, "Maximum load", capacityValue);
+        addSummaryRow(summary, "Base tariff", baseRateValue);
+        addSummaryRow(summary, "Mode modifier", modifierValue);
         addSummaryRow(summary, "Distance", distanceValue);
-        addSummaryRow(summary, "Price", priceValue);
+        addSummaryRow(summary, "Final price", priceValue);
 
         detailsArea.setEditable(false);
         detailsArea.setLineWrap(true);
@@ -258,7 +264,12 @@ public class DeliveryAppFrame extends JFrame {
 
     private void bindEvents() {
         familyBox.addActionListener(event -> updateFamilyInformation());
-        modeBox.addActionListener(event -> modeValue.setText(String.valueOf(modeBox.getSelectedItem())));
+        modeBox.addActionListener(event -> updateModeInformation());
+        distanceField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent event) { updatePricePreview(); }
+            public void removeUpdate(DocumentEvent event) { updatePricePreview(); }
+            public void changedUpdate(DocumentEvent event) { updatePricePreview(); }
+        });
     }
 
     private void fulfilOrder() {
@@ -321,6 +332,8 @@ public class DeliveryAppFrame extends JFrame {
         modeValue.setText(order.mode().name());
         droneValue.setText(platform.droneIdentifier());
         capacityValue.setText(platform.maximumWeightKg() + " kg");
+        baseRateValue.setText(formatRate(platform.baseRatePerKm()));
+        modifierValue.setText(formatModifier(platform.modePriceMultiplier(order.mode())));
         distanceValue.setText(order.distanceKm() + " km");
         priceValue.setText(String.format(java.util.Locale.ROOT, "%.2f KZT",
                 platform.calculatePrice(order)));
@@ -334,10 +347,49 @@ public class DeliveryAppFrame extends JFrame {
         familyAccent.setBackground(FAMILY_COLORS.getOrDefault(family, PRIMARY));
         DeliveryPlatform<?> platform = selectedPlatform();
         capacityHint.setText("Selected drone capacity: " + platform.maximumWeightKg() + " kg");
+        tariffHint.setText("Base tariff: " + formatRate(platform.baseRatePerKm()));
         networkValue.setText(family);
-        modeValue.setText(String.valueOf(modeBox.getSelectedItem()));
         droneValue.setText(platform.droneIdentifier());
         capacityValue.setText(platform.maximumWeightKg() + " kg");
+        baseRateValue.setText(formatRate(platform.baseRatePerKm()));
+        updateModeInformation();
+    }
+
+    private void updateModeInformation() {
+        DeliveryMode mode = (DeliveryMode) modeBox.getSelectedItem();
+        modeValue.setText(String.valueOf(mode));
+        modifierValue.setText(formatModifier(selectedPlatform().modePriceMultiplier(mode)));
+        updatePricePreview();
+    }
+
+    private void updatePricePreview() {
+        try {
+            double distance = Double.parseDouble(distanceField.getText().trim());
+            if (distance <= 0) {
+                throw new NumberFormatException();
+            }
+            DeliveryMode mode = (DeliveryMode) modeBox.getSelectedItem();
+            DeliveryOrder preview = new DeliveryOrder("PREVIEW", 1.0, distance, mode);
+            DeliveryPlatform<?> platform = selectedPlatform();
+            distanceValue.setText(distance + " km");
+            priceValue.setText(String.format(java.util.Locale.ROOT, "%.2f KZT",
+                    platform.calculatePrice(preview)));
+        } catch (NumberFormatException exception) {
+            distanceValue.setText("-");
+            priceValue.setText("-");
+        }
+    }
+
+    private String formatRate(double rate) {
+        return String.format(java.util.Locale.ROOT, "%.0f KZT/km", rate);
+    }
+
+    private String formatModifier(double multiplier) {
+        double percent = (multiplier - 1.0) * 100.0;
+        if (Math.abs(percent) < 0.01) {
+            return "Standard price";
+        }
+        return String.format(java.util.Locale.ROOT, "%+.0f%%", percent);
     }
 
     private void styleStatus(String text, Color color) {
@@ -363,19 +415,6 @@ public class DeliveryAppFrame extends JFrame {
             field.setBorder(BorderFactory.createLineBorder(ERROR, 2, true));
             field.requestFocusInWindow();
         }
-    }
-
-    private void toggleTheme() {
-        darkMode = !darkMode;
-        if (darkMode) {
-            FlatDarkLaf.setup();
-            themeButton.setText("Light mode");
-        } else {
-            FlatLightLaf.setup();
-            themeButton.setText("Dark mode");
-        }
-        SwingUtilities.updateComponentTreeUI(this);
-        updateFamilyInformation();
     }
 
     @FunctionalInterface
