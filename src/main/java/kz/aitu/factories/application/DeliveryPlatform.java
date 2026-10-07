@@ -46,6 +46,14 @@ public class DeliveryPlatform<F extends NetworkFamily> {
         return routePlanner.planRoute(order.distanceKm());
     }
 
+    public String droneIdentifier() {
+        return drone.identifier();
+    }
+
+    public double maximumWeightKg() {
+        return drone.maxWeightKg();
+    }
+
     private double priceFor(DeliveryOrder order) {
         return order.distanceKm() * 1000.0;
     }
