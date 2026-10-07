@@ -40,11 +40,13 @@ This is not a static factory: the base creator contains meaningful reusable busi
 
 ## Business operations
 
-`DeliveryPlatform` provides:
+`DeliveryPlatform` provides three collaborating business operations:
 
-- `fulfil` — plans a route, selects dispatch behavior, checks capacity, flies and charges payment;
-- `quote` — calculates a family-specific base rate adjusted by the selected dispatch mode;
-- `routePreview` — returns the selected family route.
+- `routePreview` — builds a family route and checks the selected drone's capacity;
+- `quote` — combines the family route, payment tariff and selected dispatch-mode multiplier;
+- `fulfil` — plans a route, selects dispatch behavior, checks capacity, flies and charges payment.
+
+The dark-mode UI has one `Create delivery` button. It calls `processDelivery`, which runs all three operations and displays preparation, quote and completion results together. Price preview updates automatically when the family, mode or distance changes.
 
 ## Fourth family extension
 
@@ -52,7 +54,7 @@ Mountain was added by introducing `Mountain`, three Mountain products and `Mount
 
 ## Tests
 
-`DeliveryFactoryTest` contains 22 automated tests covering factory products, runtime selection, business operations, Factory Method behavior and pricing, negative scenarios, generic abstraction use and the Mountain extension.
+`DeliveryFactoryTest` contains 23 automated tests covering factory products, runtime selection, the three collaborating business operations, the one-click workflow, Factory Method behavior and pricing, negative scenarios, generic abstraction use and the Mountain extension.
 
 ## UML
 

@@ -38,12 +38,25 @@ public class DeliveryPlatform<F extends NetworkFamily> {
 
     /** Business operation: get a price through the family's payment product. */
     public String quote(DeliveryOrder order) {
-        return paymentGateway.charge(calculatePrice(order));
+        String route = routePlanner.planRoute(order.distanceKm());
+        return route + " | " + paymentGateway.charge(calculatePrice(order));
     }
 
     /** Business operation: preview a route through the family's route product. */
     public String routePreview(DeliveryOrder order) {
-        return routePlanner.planRoute(order.distanceKm());
+        validateDroneCapacity(order);
+        return routePlanner.planRoute(order.distanceKm()) + " | "
+                + drone.identifier() + " approved for " + order.weightKg() + " kg";
+    }
+
+    /** One-click workflow that executes all three required business operations. */
+    public String processDelivery(DeliveryOrder order) {
+        String preparation = routePreview(order);
+        String quotation = quote(order);
+        String completion = fulfil(order);
+        return "PREPARATION\n" + preparation
+                + "\n\nQUOTE\n" + quotation
+                + "\n\nDELIVERY\n" + completion;
     }
 
     public String droneIdentifier() {
@@ -60,6 +73,12 @@ public class DeliveryPlatform<F extends NetworkFamily> {
 
     public double modePriceMultiplier(DeliveryMode mode) {
         return creatorFor(mode).priceMultiplier();
+    }
+
+    private void validateDroneCapacity(DeliveryOrder order) {
+        if (order.weightKg() > drone.maxWeightKg()) {
+            throw new IllegalArgumentException("Order exceeds drone capacity");
+        }
     }
 
     public double calculatePrice(DeliveryOrder order) {

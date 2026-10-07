@@ -97,12 +97,14 @@ class DeliveryFactoryTest {
     void routePreviewUsesTheFamilyRoutePlanner() {
         String result = DeliveryPlatform.from(new CoastalFactory()).routePreview(order(DeliveryMode.STANDARD));
         assertTrue(result.contains("wind-aware"));
+        assertTrue(result.contains("S-DRONE"));
     }
 
     @Test
     void quoteUsesTheFamilyPaymentGateway() {
         String result = DeliveryPlatform.from(new MetroFactory()).quote(order(DeliveryMode.STANDARD));
         assertTrue(result.contains("MetroWallet"));
+        assertTrue(result.contains("Metro air route"));
     }
 
     @Test
@@ -171,5 +173,16 @@ class DeliveryFactoryTest {
     void ecoModeAppliesFifteenPercentDiscount() {
         assertEquals(4250.0,
                 DeliveryPlatform.from(new MetroFactory()).calculatePrice(order(DeliveryMode.ECO)));
+    }
+
+    @Test
+    void oneClickProcessExecutesThreeBusinessOperations() {
+        String result = DeliveryPlatform.from(new CampusFactory())
+                .processDelivery(order(DeliveryMode.STANDARD));
+        assertTrue(result.contains("PREPARATION"));
+        assertTrue(result.contains("QUOTE"));
+        assertTrue(result.contains("DELIVERY"));
+        assertTrue(result.contains("C-DRONE"));
+        assertTrue(result.contains("CampusPass"));
     }
 }

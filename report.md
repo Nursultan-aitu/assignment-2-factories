@@ -35,13 +35,15 @@ Concrete payment products have meaningful pricing behavior. Metro charges 1000 K
 
 `FactorySelector` selects the concrete factory from an external network name. The Swing interface exposes this selection as a combo box, so the client does not hard-code a concrete factory throughout its business logic.
 
+The interface uses one `Create delivery` button. It invokes `processDelivery`, which executes three separate business operations: route preparation with drone capacity approval, quotation using route and payment products, and complete dispatch with payment. The current tariff and final price are shown automatically before submission.
+
 ## Extension result
 
 The fourth family Mountain adds a drone, route planner, payment gateway and `MountainFactory`. The generic platform and Factory Method algorithm required no changes. This demonstrates the Open/Closed Principle for the business layer.
 
 ## Testing
 
-The project includes 22 JUnit tests. They test all original factories, concrete product creation, compatibility through generic abstractions, runtime selection, three business operations, family tariffs, delivery-mode multipliers, negative scenarios and the Mountain family.
+The project includes 23 JUnit tests. They test all original factories, concrete product creation, compatibility through generic abstractions, runtime selection, three collaborating business operations, the one-click workflow, family tariffs, delivery-mode multipliers, negative scenarios and the Mountain family.
 
 ## UML traceability
 

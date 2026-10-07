@@ -156,21 +156,9 @@ public class DeliveryAppFrame extends JFrame {
         createButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
         createButton.addActionListener(event -> fulfilOrder());
 
-        JButton quoteButton = new JButton("Get quote");
-        quoteButton.addActionListener(event -> showQuote());
-        JButton routeButton = new JButton("Preview route");
-        routeButton.addActionListener(event -> showRoute());
-        JPanel secondary = new JPanel(new GridLayout(1, 2, 10, 0));
-        secondary.setAlignmentX(Component.LEFT_ALIGNMENT);
-        secondary.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-        secondary.add(quoteButton);
-        secondary.add(routeButton);
-
         actions.add(errorLabel);
         actions.add(Box.createVerticalStrut(8));
         actions.add(createButton);
-        actions.add(Box.createVerticalStrut(10));
-        actions.add(secondary);
         card.add(actions, BorderLayout.SOUTH);
         return card;
     }
@@ -273,24 +261,16 @@ public class DeliveryAppFrame extends JFrame {
     }
 
     private void fulfilOrder() {
-        execute("Confirmed", SUCCESS, DeliveryPlatform::fulfil);
+        executeDelivery();
     }
 
-    private void showQuote() {
-        execute("Quote ready", PRIMARY, DeliveryPlatform::quote);
-    }
-
-    private void showRoute() {
-        execute("Route ready", PRIMARY, DeliveryPlatform::routePreview);
-    }
-
-    private void execute(String status, Color statusColor, PlatformOperation operation) {
+    private void executeDelivery() {
         resetValidation();
         try {
             DeliveryOrder order = readOrder();
             DeliveryPlatform<?> platform = selectedPlatform();
-            String result = operation.apply(platform, order);
-            updateSummary(order, platform, status, statusColor, result);
+            String result = platform.processDelivery(order);
+            updateSummary(order, platform, "Confirmed", SUCCESS, result);
         } catch (NumberFormatException exception) {
             showInputError("Weight and distance must be numbers.", null);
         } catch (IllegalArgumentException exception) {
@@ -417,8 +397,4 @@ public class DeliveryAppFrame extends JFrame {
         }
     }
 
-    @FunctionalInterface
-    private interface PlatformOperation {
-        String apply(DeliveryPlatform<?> platform, DeliveryOrder order);
-    }
 }
