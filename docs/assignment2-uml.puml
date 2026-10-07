@@ -1,89 +1,80 @@
 @startuml
 title Drone Delivery Factory System
+
+top to bottom direction
 skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam packageStyle rectangle
+hide empty fields
+
+package "Client and business layer" {
+    class Main <<Client>>
+    class DeliveryAppFrame <<Swing UI>> {
+        -familyBox
+        -modeBox
+        -weightField
+        -distanceField
+        +createDelivery()
+    }
+    class DeliveryOrder <<record>> {
+        +id: String
+        +weightKg: double
+        +distanceKm: double
+        +mode: DeliveryMode
+    }
+    enum DeliveryMode {
+        PRIORITY
+        STANDARD
+        ECO
+    }
+    class "DeliveryPlatform<F>" as Platform {
+        +from(factory): DeliveryPlatform<F>
+        +processDelivery(order): String
+        +routePreview(order): String
+        +quote(order): String
+        +fulfil(order): String
+        +calculatePrice(order): double
+        +baseRatePerKm(): double
+        +modePriceMultiplier(mode): double
+    }
+}
 
 package "Abstract Factory" {
+    class FactorySelector {
+        +select(familyName): SystemFactory<?>
+    }
     interface "SystemFactory<F>" as SystemFactory {
         +createDrone(): Drone<F>
         +createRoutePlanner(): RoutePlanner<F>
         +createPaymentGateway(): PaymentGateway<F>
     }
-    class MetroFactory
-    class CampusFactory
-    class CoastalFactory
-    class MountainFactory
-
-    SystemFactory <|.. MetroFactory
-    SystemFactory <|.. CampusFactory
-    SystemFactory <|.. CoastalFactory
-    SystemFactory <|.. MountainFactory
-
-    interface "Drone<F>" as Drone
-    interface "RoutePlanner<F>" as Planner
-    interface "PaymentGateway<F>" as Payment
-    SystemFactory ..> Drone : creates
-    SystemFactory ..> Planner : creates
-    SystemFactory ..> Payment : creates
-
+    interface "Drone<F>" as Drone {
+        +identifier(): String
+        +maxWeightKg(): double
+        +fly(distanceKm): String
+    }
+    interface "RoutePlanner<F>" as Planner {
+        +planRoute(distanceKm): String
+    }
+    interface "PaymentGateway<F>" as Payment {
+        +ratePerKm(): double
+        +calculateBasePrice(distanceKm): double
+        +gatewayName(): String
+        +charge(amount): String
+    }
+    interface NetworkFamily
 }
-
-package "Product families" {
-    interface "NetworkFamily" as Network
-    class Metro
-    class Campus
-    class Coastal
-    class Mountain
-    Network <|.. Metro
-    Network <|.. Campus
-    Network <|.. Coastal
-    Network <|.. Mountain
-
-    class MetroDrone
-    class MetroRoutePlanner
-    class MetroPayment
-    class CampusDrone
-    class CampusRoutePlanner
-    class CampusPayment
-    class CoastalDrone
-    class CoastalRoutePlanner
-    class CoastalPayment
-    class MountainDrone
-    class MountainRoutePlanner
-    class MountainPayment
-
-    Drone <|.. MetroDrone
-    Drone <|.. CampusDrone
-    Drone <|.. CoastalDrone
-    Drone <|.. MountainDrone
-    Planner <|.. MetroRoutePlanner
-    Planner <|.. CampusRoutePlanner
-    Planner <|.. CoastalRoutePlanner
-    Planner <|.. MountainRoutePlanner
-    Payment <|.. MetroPayment
-    Payment <|.. CampusPayment
-    Payment <|.. CoastalPayment
-    Payment <|.. MountainPayment
-}
-
-MetroFactory ..> MetroDrone : creates
-MetroFactory ..> MetroRoutePlanner : creates
-MetroFactory ..> MetroPayment : creates
-CampusFactory ..> CampusDrone : creates
-CampusFactory ..> CampusRoutePlanner : creates
-CampusFactory ..> CampusPayment : creates
-CoastalFactory ..> CoastalDrone : creates
-CoastalFactory ..> CoastalRoutePlanner : creates
-CoastalFactory ..> CoastalPayment : creates
-MountainFactory ..> MountainDrone : creates
-MountainFactory ..> MountainRoutePlanner : creates
-MountainFactory ..> MountainPayment : creates
 
 package "Factory Method" {
     abstract class "DispatchCreator<F>" as Creator {
-        +scheduleDelivery(...)
         #createStrategy(): DispatchStrategy<F>
+        +scheduleDelivery(...): String
+        +priceMultiplier(): double
     }
-    interface "DispatchStrategy<F>" as Strategy
+    interface "DispatchStrategy<F>" as Strategy {
+        +dispatch(...): String
+        +priceMultiplier(): double
+    }
     class PriorityCreator
     class StandardCreator
     class EcoCreator
@@ -100,24 +91,110 @@ package "Factory Method" {
     Strategy <|.. EcoDispatch
 }
 
-class "FactorySelector" as Selector
-class "DeliveryPlatform<F>" as Platform
-class "DeliveryAppFrame" as GUI
-class Main <<Client>>
+package "Metro family" {
+    class Metro
+    class MetroFactory
+    class MetroDrone
+    class MetroRoutePlanner
+    class MetroPayment
 
-Main --> GUI
-GUI --> Selector : selected family
-GUI --> Platform : creates and uses
-Selector --> SystemFactory
-Platform ..> SystemFactory : uses products from
-Platform --> Creator : schedules delivery
-Platform --> Drone
-Platform --> Planner
-Platform --> Payment
+    MetroFactory ..> MetroDrone : creates
+    MetroFactory ..> MetroRoutePlanner : creates
+    MetroFactory ..> MetroPayment : creates
+}
+
+package "Campus family" {
+    class Campus
+    class CampusFactory
+    class CampusDrone
+    class CampusRoutePlanner
+    class CampusPayment
+
+    CampusFactory ..> CampusDrone : creates
+    CampusFactory ..> CampusRoutePlanner : creates
+    CampusFactory ..> CampusPayment : creates
+}
+
+package "Coastal family" {
+    class Coastal
+    class CoastalFactory
+    class CoastalDrone
+    class CoastalRoutePlanner
+    class CoastalPayment
+
+    CoastalFactory ..> CoastalDrone : creates
+    CoastalFactory ..> CoastalRoutePlanner : creates
+    CoastalFactory ..> CoastalPayment : creates
+}
+
+package "Mountain family" {
+    class Mountain
+    class MountainFactory
+    class MountainDrone
+    class MountainRoutePlanner
+    class MountainPayment
+
+    MountainFactory ..> MountainDrone : creates
+    MountainFactory ..> MountainRoutePlanner : creates
+    MountainFactory ..> MountainPayment : creates
+}
+
+Main --> DeliveryAppFrame : launches
+DeliveryAppFrame --> FactorySelector : selected family
+DeliveryAppFrame --> DeliveryOrder : creates
+DeliveryAppFrame --> Platform : processDelivery(order)
+
+FactorySelector --> SystemFactory : returns
+Platform ..> SystemFactory : from(factory)
+Platform o-- Drone
+Platform o-- Planner
+Platform o-- Payment
+Platform ..> Creator : mode selection
+Platform ..> DeliveryOrder
+DeliveryOrder --> DeliveryMode
+
+SystemFactory <|.. MetroFactory
+SystemFactory <|.. CampusFactory
+SystemFactory <|.. CoastalFactory
+SystemFactory <|.. MountainFactory
+
+NetworkFamily <|.. Metro
+NetworkFamily <|.. Campus
+NetworkFamily <|.. Coastal
+NetworkFamily <|.. Mountain
+
+Drone <|.. MetroDrone
+Drone <|.. CampusDrone
+Drone <|.. CoastalDrone
+Drone <|.. MountainDrone
+
+Planner <|.. MetroRoutePlanner
+Planner <|.. CampusRoutePlanner
+Planner <|.. CoastalRoutePlanner
+Planner <|.. MountainRoutePlanner
+
+Payment <|.. MetroPayment
+Payment <|.. CampusPayment
+Payment <|.. CoastalPayment
+Payment <|.. MountainPayment
 
 note right of Platform
-The same generic family F is used by
-Drone, RoutePlanner and PaymentGateway.
-Mixed families do not type-check.
+processDelivery() executes three operations:
+1. routePreview(): route + drone capacity
+2. quote(): route + tariff + mode multiplier
+3. fulfil(): dispatch + flight + payment
 end note
+
+note right of SystemFactory
+The generic family F keeps Drone,
+RoutePlanner and PaymentGateway compatible.
+Mixed product families do not type-check.
+end note
+
+note right of Strategy
+PRIORITY: x1.40
+STANDARD: x1.00
+ECO: x0.85
+end note
+
 @enduml
